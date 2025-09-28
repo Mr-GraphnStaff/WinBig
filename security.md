@@ -28,7 +28,7 @@ If you discover a security issue, please **do not** open a public issue. Instead
    - If you're a repo collaborator or can create an advisory, please open a private GitHub Security Advisory for `Mr-GraphnStaff/WinBig` and include the details requested below.
 
 2. **Email** (alternative)
-   - Send a report to: `security@winbig.org` (placeholder — replace with your project or org security contact).
+   - Send a report to: `redacted` (placeholder — replace with your project or org security contact).
    - If you prefer encryption, provide a PGP key request and we will publish our key or share one back.
 
 Please include the following information in your report:
