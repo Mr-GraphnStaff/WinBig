@@ -62,6 +62,41 @@
         "player_mood_tag": {
           "type": "string",
           "description": "Qualitative tag describing the player's mood or qualitative context."
+        },
+        "electrostatic_charge_C": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Measured net electrostatic charge on the ball in coulombs."
+        },
+        "electrostatic_test_method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Instrumentation used for charge assessment (e.g., faraday, fieldmeter)."
+        },
+        "electrostatic_measured_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO8601 timestamp when electrostatic measurement was taken."
+        },
+        "relative_humidity_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "Ambient relative humidity percentage near the apparatus."
+        },
+        "anti_static_used": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether anti-static mitigation (e.g., ionizer, wipes) was applied before draw."
         }
       },
       "additionalProperties": true,
@@ -96,10 +131,13 @@
         "maximum": 1.0
       },
       "minItems": 1,
-      "description": "Estimated β vector at the time of the observation."
+      "description": "Estimated \u03b2 vector at the time of the observation."
     },
     "notes": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Free-form annotations about context, anomalies, or follow-ups."
     }
   },

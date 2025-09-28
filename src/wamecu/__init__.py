@@ -22,6 +22,12 @@ from .simulate import (
     simulate_time_varying_draws,
     stream_draws,
 )
+
+from .simulate_static import (
+    StaticSimulationResult,
+    estimate_static_effect,
+    simulate_with_static,
+)
 from .utils import wamecu_probabilities
 
 __all__ = [
@@ -44,5 +50,8 @@ __all__ = [
     "simulate_draws",
     "simulate_time_varying_draws",
     "stream_draws",
+    "StaticSimulationResult",
+    "estimate_static_effect",
+    "simulate_with_static",
     "wamecu_probabilities",
 ]
