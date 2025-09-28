@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import numpy as np
 
@@ -35,3 +35,38 @@ def simulate_draws(probabilities: np.ndarray, n_trials: int, seed: int | None = 
     rng = np.random.default_rng(seed)
     support = np.arange(probabilities.size)
     return rng.choice(support, size=n_trials, p=probabilities)
+
+
+def simulate_time_varying_draws(
+    beta_series: Sequence[Sequence[float]], seed: int | None = None
+) -> np.ndarray:
+    """Simulate streaming draws for a sequence of bias coefficients.
+
+    Parameters
+    ----------
+    beta_series:
+        Iterable of bias coefficient vectors. ``beta_series[t]`` represents
+        :math:`\beta_t` at time step ``t``.
+    seed:
+        Optional random seed for reproducibility.
+
+    Returns
+    -------
+    np.ndarray
+        Array of draws where the ``t``-th entry is generated from the
+        categorical distribution induced by ``beta_series[t]``.
+    """
+
+    beta_array = np.asarray(beta_series, dtype=float)
+    if beta_array.ndim != 2:
+        raise ValueError("beta_series must be a 2D array of shape (steps, outcomes)")
+
+    n_steps, n_outcomes = beta_array.shape
+    draws = np.empty(n_steps, dtype=int)
+    rng = np.random.default_rng(seed)
+
+    for t in range(n_steps):
+        probabilities = wamecu_probabilities(n_outcomes, beta_array[t])
+        draws[t] = rng.choice(n_outcomes, p=probabilities)
+
+    return draws
