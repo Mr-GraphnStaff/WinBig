@@ -1,30 +1,28 @@
 """Statistical diagnostics for WAMECU simulations."""
+
 from __future__ import annotations
 
 from typing import Iterable
 
 import numpy as np
 import pandas as pd
-from scipy.stats import chi2
+
+from .metrics import chi_square_test, shannon_entropy
 
 
-def chi_square_statistic(observed: np.ndarray, expected: np.ndarray) -> tuple[float, float]:
-    """Return the chi-square statistic and p-value for observed vs. expected counts."""
-    observed = np.asarray(observed, dtype=float)
-    expected = np.asarray(expected, dtype=float)
-    if observed.shape != expected.shape:
-        raise ValueError("observed and expected must have the same shape")
-    if np.any(expected <= 0):
-        raise ValueError("expected counts must be positive")
+def chi_square_statistic(
+    observed: np.ndarray, expected: np.ndarray
+) -> tuple[float, float]:
+    """Return chi-square diagnostic (compatibility shim)."""
 
-    statistic = np.sum((observed - expected) ** 2 / expected)
-    dof = observed.size - 1
-    p_value = 1 - chi2.cdf(statistic, df=dof)
-    return float(statistic), float(p_value)
+    return chi_square_test(observed, expected)
 
 
-def entropy_gap(empirical_prob: np.ndarray, baseline_prob: np.ndarray) -> float:
-    """Compute the Shannon entropy gap between empirical and baseline distributions."""
+def entropy_gap(
+    empirical_prob: np.ndarray,
+    baseline_prob: np.ndarray,
+) -> float:
+    """Compute the Shannon entropy gap relative to a baseline."""
     empirical_prob = np.asarray(empirical_prob, dtype=float)
     baseline_prob = np.asarray(baseline_prob, dtype=float)
     if empirical_prob.shape != baseline_prob.shape:
@@ -34,11 +32,8 @@ def entropy_gap(empirical_prob: np.ndarray, baseline_prob: np.ndarray) -> float:
     if not np.isclose(baseline_prob.sum(), 1.0):
         raise ValueError("baseline_prob must sum to 1")
 
-    # avoid log(0); only include terms where probability > 0
-    mask_empirical = empirical_prob > 0
-    mask_baseline = baseline_prob > 0
-    entropy_empirical = -np.sum(empirical_prob[mask_empirical] * np.log2(empirical_prob[mask_empirical]))
-    entropy_baseline = -np.sum(baseline_prob[mask_baseline] * np.log2(baseline_prob[mask_baseline]))
+    entropy_empirical = shannon_entropy(empirical_prob)
+    entropy_baseline = shannon_entropy(baseline_prob)
     return float(entropy_empirical - entropy_baseline)
 
 
@@ -53,8 +48,10 @@ def rolling_anomaly_scores(
     baseline_probabilities = np.asarray(baseline_probabilities, dtype=float)
     if draws.ndim != 1:
         raise ValueError("draws must be one-dimensional")
-    if np.any(baseline_probabilities < 0) or not np.isclose(baseline_probabilities.sum(), 1.0):
-        raise ValueError("baseline_probabilities must form a valid distribution")
+    if np.any(baseline_probabilities < 0) or not np.isclose(
+        baseline_probabilities.sum(), 1.0
+    ):
+        raise ValueError("baseline_probabilities invalid distribution")
     if window_size <= 1:
         raise ValueError("window_size must be greater than 1")
 
@@ -66,7 +63,7 @@ def rolling_anomaly_scores(
     expected_counts = baseline_probabilities * window_size
 
     for end in range(window_size, draws.size + 1):
-        window = draws[end - window_size : end]
+        window = draws[slice(end - window_size, end)]
         counts = np.bincount(window, minlength=n_outcomes)
         stat, p_value = chi_square_statistic(counts, expected_counts)
         empirical = counts / window_size
@@ -83,7 +80,10 @@ def rolling_anomaly_scores(
     return pd.DataFrame.from_records(records)
 
 
-def outcome_correlation_matrix(draws: Iterable[int], n_outcomes: int) -> np.ndarray:
+def outcome_correlation_matrix(
+    draws: Iterable[int],
+    n_outcomes: int,
+) -> np.ndarray:
     """Return the Pearson correlation matrix of one-hot encoded draws."""
 
     draws = np.asarray(list(draws), dtype=int)

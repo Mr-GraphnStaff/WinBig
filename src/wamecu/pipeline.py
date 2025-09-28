@@ -1,4 +1,5 @@
 """End-to-end orchestration utilities for the WAMECU workflow."""
+
 from __future__ import annotations
 
 from typing import Iterable
@@ -8,11 +9,19 @@ import pandas as pd
 
 from .anomaly import outcome_correlation_matrix, rolling_anomaly_scores
 from .bias import inverse_mass_probabilities, probabilities_to_beta
-from .estimation import AdaptiveBetaEstimator, simulate_beta_drift
-from .simulation import simulate_time_varying_draws, wamecu_probabilities
+from .estimation import AdaptiveBetaEstimator
+from .simulate import (
+    BetaDriftConfig,
+    beta_drift,
+    simulate_time_varying_draws,
+)
+from .utils import wamecu_probabilities
 
 
-def build_weight_profile(n_outcomes: int, heaviness: float = 1.5) -> np.ndarray:
+def build_weight_profile(
+    n_outcomes: int,
+    heaviness: float = 1.5,
+) -> np.ndarray:
     """Create a default weight profile with heavier tails."""
 
     if n_outcomes <= 1:
@@ -50,35 +59,55 @@ def run_wamecu_cycle(
         if weights.size != n_outcomes:
             raise ValueError("weight_profile size must match n_outcomes")
 
-    baseline_probabilities = inverse_mass_probabilities(weights, softness=softness)
+    baseline_probabilities = inverse_mass_probabilities(
+        weights,
+        softness=softness,
+    )
     baseline_beta = probabilities_to_beta(baseline_probabilities)
 
-    drift_series = simulate_beta_drift(
-        n_outcomes=n_outcomes,
+    sin_amplitude = 0.0 if drift != "sinusoidal" else drift_scale * 2
+
+    drift_config = BetaDriftConfig(
         n_steps=n_steps,
-        drift=drift,
-        scale=drift_scale,
+        n_outcomes=n_outcomes,
+        walk_scale=drift_scale,
+        sin_amplitude=sin_amplitude,
+        sin_period=120,
         seed=None if seed is None else seed + 1,
     )
+    drift_series = beta_drift(drift_config)
 
     beta_series = drift_series + baseline_beta
 
     min_adjusted = np.min(1 + beta_series)
     if min_adjusted <= 0:
         safety = 0.95 * np.min(1 + baseline_beta)
-        beta_series = baseline_beta + (beta_series - baseline_beta) * max(safety / (safety - min_adjusted), 0.5)
+        beta_series = baseline_beta + (beta_series - baseline_beta) * max(
+            safety / (safety - min_adjusted), 0.5
+        )
 
-    probabilities = np.vstack([wamecu_probabilities(n_outcomes, beta) for beta in beta_series])
-    draws = simulate_time_varying_draws(beta_series, seed=None if seed is None else seed + 2)
+    probabilities = np.vstack(
+        [wamecu_probabilities(n_outcomes, beta) for beta in beta_series]
+    )
+    draws = simulate_time_varying_draws(
+        beta_series, seed=None if seed is None else seed + 2
+    )
 
-    estimator = AdaptiveBetaEstimator(n_outcomes=n_outcomes, smoothing=smoothing)
+    estimator = AdaptiveBetaEstimator(
+        n_outcomes=n_outcomes,
+        smoothing=smoothing,
+    )
     estimated_beta = estimator.batch_update(draws)
 
-    anomalies = rolling_anomaly_scores(draws, baseline_probabilities, window_size=window_size)
+    anomalies = rolling_anomaly_scores(
+        draws, baseline_probabilities, window_size=window_size
+    )
     correlations = outcome_correlation_matrix(draws, n_outcomes)
 
     timeline = np.arange(n_steps)
-    probability_df = pd.DataFrame(probabilities, columns=[f"Outcome {i}" for i in range(n_outcomes)])
+    probability_df = pd.DataFrame(
+        probabilities, columns=[f"Outcome {i}" for i in range(n_outcomes)]
+    )
     probability_df.insert(0, "step", timeline)
 
     return {

@@ -3,9 +3,12 @@ pandas
 scipy
 matplotlib
 scikit-learn
-jupyter
-notebook
 jupyterlab
+notebook
+nbclient
+papermill
 pytest
 pytest-cov
 seaborn
+black
+flake8

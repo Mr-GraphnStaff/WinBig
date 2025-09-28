@@ -1,4 +1,5 @@
 """Bias utilities for WAMECU digital twin experiments."""
+
 from __future__ import annotations
 
 from typing import Iterable
@@ -6,7 +7,9 @@ from typing import Iterable
 import numpy as np
 
 
-def inverse_mass_probabilities(weights: Iterable[float], softness: float = 1.0) -> np.ndarray:
+def inverse_mass_probabilities(
+    weights: Iterable[float], softness: float = 1.0
+) -> np.ndarray:
     """Convert outcome weights into a probability distribution.
 
     The heuristic follows a simple physical metaphor: heavier outcomes have

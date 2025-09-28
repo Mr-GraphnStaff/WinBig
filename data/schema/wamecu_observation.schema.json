@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wamecu.org/schemas/wamecu_observation.schema.json",
+  "title": "WAMECU Observation Record",
+  "type": "object",
+  "required": [
+    "run_id",
+    "timestamp",
+    "trial_index",
+    "outcome",
+    "n_outcomes",
+    "observed_features",
+    "derived_metrics",
+    "beta_estimate"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for the simulation or experiment run."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 timestamp when the observation was recorded."
+    },
+    "trial_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Zero-based index of the trial within the run."
+    },
+    "outcome": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Observed categorical outcome index."
+    },
+    "n_outcomes": {
+      "type": "integer",
+      "minimum": 2,
+      "description": "Total number of possible outcomes in the experiment."
+    },
+    "observed_features": {
+      "type": "object",
+      "required": [
+        "ball_weight_g",
+        "air_temp_c",
+        "operator_id",
+        "player_mood_tag"
+      ],
+      "properties": {
+        "ball_weight_g": {
+          "type": "number",
+          "description": "Measured weight of the drawn ball in grams."
+        },
+        "air_temp_c": {
+          "type": "number",
+          "description": "Air temperature near the draw apparatus in Celsius."
+        },
+        "operator_id": {
+          "type": "string",
+          "description": "Identifier for the human or robotic operator overseeing the trial."
+        },
+        "player_mood_tag": {
+          "type": "string",
+          "description": "Qualitative tag describing the player's mood or qualitative context."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Raw observational features captured at draw time."
+    },
+    "derived_metrics": {
+      "type": "object",
+      "required": [
+        "shannon_entropy",
+        "chi_square_pvalue"
+      ],
+      "properties": {
+        "shannon_entropy": {
+          "type": "number",
+          "description": "Shannon entropy of the rolling window around the observation."
+        },
+        "chi_square_pvalue": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "P-value from the chi-square anomaly test for this draw."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Derived analytical metrics summarizing bias diagnostics."
+    },
+    "beta_estimate": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": -1.0,
+        "maximum": 1.0
+      },
+      "minItems": 1,
+      "description": "Estimated β vector at the time of the observation."
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Free-form annotations about context, anomalies, or follow-ups."
+    }
+  },
+  "additionalProperties": false
+}
