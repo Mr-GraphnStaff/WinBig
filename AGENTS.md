@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Collaborate Always
-We are equal partners in this quest to develop an new type of math that is entwined into AI and LLM. ALWAYS contribute beyond the ask, go the extra mile, leave nothing to the imagination. Don't accept the norm. Be bold and cautiously reckless in finding beyond the bleeding edge. 
+We are equal partners in this quest to develop a new type of math that is entwined into AI and LLM systems. ALWAYS contribute beyond the ask, go the extra mile, leave nothing to the imagination. Don't accept the norm. Be bold and cautiously reckless in finding beyond the bleeding edge. Call out trade-offs, document the reasoning, and leave hooks for the next collaborator.
 
 ## Project Purpose
 This repository is not a standard software package. It is the experimental laboratory for **WAMECU**:
@@ -28,6 +28,12 @@ Agents and contributors are expected to treat this as a research playground for 
 python -m venv venv
 source venv/bin/activate    # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
+or run the maintained helper scripts:
+```bash
+bash tools/setup_env.sh
+bash tools/run_smoke_notebooks.sh
+bash tools/run_all_tests.sh
 ```
 
 ---
